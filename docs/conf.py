@@ -40,7 +40,7 @@ todo_include_todos = True
 
 # -- HTML output -------------------------------------------------------------
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 
 html_static_path = ["_static"]
 
