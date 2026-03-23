@@ -3,8 +3,7 @@ Beetle Documentation
 
 Welcome to the Beetle language documentation.
 
-Beetle é uma linguagem de programação compilada, de alto nível, simples e eficiente,
-voltada para sistemas embarcados, IA e scripts rápidos.
+Beetle is a compiled, high-level language with a simple and productive syntax, implemented by a small and fast compiler focused on embedded systems.
 
 .. toctree::
    :maxdepth: 2
