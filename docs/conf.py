@@ -40,7 +40,7 @@ todo_include_todos = True
 
 # -- HTML output -------------------------------------------------------------
 
-html_theme = "furo"
+html_theme = "alabaster"
 
 html_static_path = ["_static"]
 
