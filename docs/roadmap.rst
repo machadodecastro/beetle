@@ -5,7 +5,7 @@ v0.1
 ----
 
 - ​​Basic syntax
-- C compiler
+- C++ compiler
 
 v0.2
 ----
