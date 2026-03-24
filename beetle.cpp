@@ -7,18 +7,43 @@
 #include <stdexcept>
 
 enum class TokenType {
+    // Keywords
     KW_INT,
     KW_STRING,
+    KW_BOOL,
     KW_PRINT,
+    KW_IF,
+    KW_ELSE,
+    KW_WHILE,
+    KW_FN,
+    KW_RETURN,
+    KW_TRUE,
+    KW_FALSE,
+
+    // Identifiers / literals
     IDENT,
     NUMBER,
     STRING_LITERAL,
-    ASSIGN,
-    PLUS,
-    MINUS,
-    STAR,
-    SLASH,
-    PERCENT,
+
+    // Operators
+    ASSIGN,       // =
+    EQ,           // ==
+    NEQ,          // !=
+    LT,           // <
+    LTE,          // <=
+    GT,           // >
+    GTE,          // >=
+    PLUS,         // +
+    MINUS,        // -
+    STAR,         // *
+    SLASH,        // /
+    PERCENT,      // %
+    CARET,        // ^
+    AND,          // &&
+    OR,           // ||
+    NOT,          // !
+
+    // Punctuation
     SEMICOLON,
     COMMA,
     LBRACE,
@@ -27,6 +52,7 @@ enum class TokenType {
     RBRACKET,
     LPAREN,
     RPAREN,
+
     END
 };
 
@@ -40,9 +66,10 @@ private:
     std::string src;
     size_t pos = 0;
 
-    char peek() const {
-        if (pos >= src.size()) return '\0';
-        return src[pos];
+    char peek(size_t offset = 0) const {
+        size_t p = pos + offset;
+        if (p >= src.size()) return '\0';
+        return src[p];
     }
 
     char get() {
@@ -50,9 +77,38 @@ private:
         return src[pos++];
     }
 
-    void skipWhitespace() {
-        while (std::isspace(static_cast<unsigned char>(peek()))) {
-            get();
+    void skipWhitespaceAndComments() {
+        while (true) {
+            while (std::isspace(static_cast<unsigned char>(peek()))) {
+                get();
+            }
+
+            // Single-line comment: //
+            if (peek() == '/' && peek(1) == '/') {
+                get();
+                get();
+                while (peek() != '\n' && peek() != '\0') {
+                    get();
+                }
+                continue;
+            }
+
+            // Multi-line comment: /* ... */
+            if (peek() == '/' && peek(1) == '*') {
+                get();
+                get();
+                while (!(peek() == '*' && peek(1) == '/')) {
+                    if (peek() == '\0') {
+                        throw std::runtime_error("Unclosed block comment.");
+                    }
+                    get();
+                }
+                get();
+                get();
+                continue;
+            }
+
+            break;
         }
     }
 
@@ -64,7 +120,15 @@ private:
 
         if (value == "int") return {TokenType::KW_INT, value};
         if (value == "string") return {TokenType::KW_STRING, value};
+        if (value == "bool") return {TokenType::KW_BOOL, value};
         if (value == "print") return {TokenType::KW_PRINT, value};
+        if (value == "if") return {TokenType::KW_IF, value};
+        if (value == "else") return {TokenType::KW_ELSE, value};
+        if (value == "while") return {TokenType::KW_WHILE, value};
+        if (value == "fn") return {TokenType::KW_FN, value};
+        if (value == "return") return {TokenType::KW_RETURN, value};
+        if (value == "true") return {TokenType::KW_TRUE, value};
+        if (value == "false") return {TokenType::KW_FALSE, value};
 
         return {TokenType::IDENT, value};
     }
@@ -80,12 +144,20 @@ private:
     Token stringLiteral() {
         std::string value;
         get(); // opening "
+
         while (peek() != '"' && peek() != '\0') {
-            value += get();
+            if (peek() == '\\') {
+                value += get();
+                if (peek() != '\0') value += get();
+            } else {
+                value += get();
+            }
         }
+
         if (peek() != '"') {
             throw std::runtime_error("Unclosed string.");
         }
+
         get(); // closing "
         return {TokenType::STRING_LITERAL, value};
     }
@@ -97,7 +169,7 @@ public:
         std::vector<Token> tokens;
 
         while (true) {
-            skipWhitespace();
+            skipWhitespaceAndComments();
             char c = peek();
 
             if (c == '\0') {
@@ -120,13 +192,25 @@ public:
                 continue;
             }
 
+            // Two-character operators
+            if (c == '=' && peek(1) == '=') { get(); get(); tokens.push_back({TokenType::EQ, "=="}); continue; }
+            if (c == '!' && peek(1) == '=') { get(); get(); tokens.push_back({TokenType::NEQ, "!="}); continue; }
+            if (c == '<' && peek(1) == '=') { get(); get(); tokens.push_back({TokenType::LTE, "<="}); continue; }
+            if (c == '>' && peek(1) == '=') { get(); get(); tokens.push_back({TokenType::GTE, ">="}); continue; }
+            if (c == '&' && peek(1) == '&') { get(); get(); tokens.push_back({TokenType::AND, "&&"}); continue; }
+            if (c == '|' && peek(1) == '|') { get(); get(); tokens.push_back({TokenType::OR, "||"}); continue; }
+
             switch (c) {
                 case '=': get(); tokens.push_back({TokenType::ASSIGN, "="}); break;
+                case '<': get(); tokens.push_back({TokenType::LT, "<"}); break;
+                case '>': get(); tokens.push_back({TokenType::GT, ">"}); break;
                 case '+': get(); tokens.push_back({TokenType::PLUS, "+"}); break;
                 case '-': get(); tokens.push_back({TokenType::MINUS, "-"}); break;
                 case '*': get(); tokens.push_back({TokenType::STAR, "*"}); break;
                 case '/': get(); tokens.push_back({TokenType::SLASH, "/"}); break;
                 case '%': get(); tokens.push_back({TokenType::PERCENT, "%"}); break;
+                case '^': get(); tokens.push_back({TokenType::CARET, "^"}); break;
+                case '!': get(); tokens.push_back({TokenType::NOT, "!"}); break;
                 case ';': get(); tokens.push_back({TokenType::SEMICOLON, ";"}); break;
                 case ',': get(); tokens.push_back({TokenType::COMMA, ","}); break;
                 case '{': get(); tokens.push_back({TokenType::LBRACE, "{"}); break;
@@ -148,10 +232,17 @@ class Parser {
 private:
     std::vector<Token> tokens;
     size_t pos = 0;
-    std::ostringstream out;
+
+    std::ostringstream functionOut;
+    std::ostringstream mainOut;
+    std::ostringstream* out = &mainOut;
 
     Token& current() {
         return tokens[pos];
+    }
+
+    Token& previous() {
+        return tokens[pos - 1];
     }
 
     bool match(TokenType type) {
@@ -162,57 +253,175 @@ private:
         return false;
     }
 
+    bool check(TokenType type) const {
+        return tokens[pos].type == type;
+    }
+
+    bool checkNext(TokenType type) const {
+        if (pos + 1 >= tokens.size()) return false;
+        return tokens[pos + 1].type == type;
+    }
+
     void expect(TokenType type, const std::string& msg) {
         if (!match(type)) {
             throw std::runtime_error(msg);
         }
     }
 
+    std::string indent() const {
+        return "    ";
+    }
+
+    bool isTypeToken(TokenType t) const {
+        return t == TokenType::KW_INT || t == TokenType::KW_STRING || t == TokenType::KW_BOOL;
+    }
+
+    std::string parseType() {
+        if (match(TokenType::KW_INT)) return "int";
+        if (match(TokenType::KW_STRING)) return "std::string";
+        if (match(TokenType::KW_BOOL)) return "bool";
+        throw std::runtime_error("Expected type.");
+    }
+
+    // Expressions
     std::string parseExpression() {
-        return parseAddSub();
+        return parseLogicalOr();
+    }
+
+    std::string parseLogicalOr() {
+        std::string left = parseLogicalAnd();
+        while (match(TokenType::OR)) {
+            std::string right = parseLogicalAnd();
+            left = "(" + left + " || " + right + ")";
+        }
+        return left;
+    }
+
+    std::string parseLogicalAnd() {
+        std::string left = parseEquality();
+        while (match(TokenType::AND)) {
+            std::string right = parseEquality();
+            left = "(" + left + " && " + right + ")";
+        }
+        return left;
+    }
+
+    std::string parseEquality() {
+        std::string left = parseComparison();
+        while (check(TokenType::EQ) || check(TokenType::NEQ)) {
+            std::string op = current().value;
+            pos++;
+            std::string right = parseComparison();
+            left = "(" + left + " " + op + " " + right + ")";
+        }
+        return left;
+    }
+
+    std::string parseComparison() {
+        std::string left = parseAddSub();
+        while (check(TokenType::LT) || check(TokenType::LTE) ||
+               check(TokenType::GT) || check(TokenType::GTE)) {
+            std::string op = current().value;
+            pos++;
+            std::string right = parseAddSub();
+            left = "(" + left + " " + op + " " + right + ")";
+        }
+        return left;
     }
 
     std::string parseAddSub() {
         std::string left = parseMulDiv();
-        while (current().type == TokenType::PLUS || current().type == TokenType::MINUS) {
+        while (check(TokenType::PLUS) || check(TokenType::MINUS)) {
             std::string op = current().value;
             pos++;
             std::string right = parseMulDiv();
-            left = left + " " + op + " " + right;
+            left = "(" + left + " " + op + " " + right + ")";
         }
         return left;
     }
 
     std::string parseMulDiv() {
-        std::string left = parsePrimary();
-        while (current().type == TokenType::STAR ||
-               current().type == TokenType::SLASH ||
-               current().type == TokenType::PERCENT) {
+        std::string left = parsePower();
+        while (check(TokenType::STAR) || check(TokenType::SLASH) || check(TokenType::PERCENT)) {
             std::string op = current().value;
             pos++;
-            std::string right = parsePrimary();
-            left = left + " " + op + " " + right;
+            std::string right = parsePower();
+            left = "(" + left + " " + op + " " + right + ")";
         }
         return left;
     }
 
+    std::string parsePower() {
+        std::string left = parseUnary();
+
+        if (match(TokenType::CARET)) {
+            std::string right = parsePower(); // right associative
+            left = "beetle_pow(" + left + ", " + right + ")";
+        }
+
+        return left;
+    }
+
+    std::string parseUnary() {
+        if (match(TokenType::NOT)) {
+            return "(!" + parseUnary() + ")";
+        }
+
+        if (match(TokenType::MINUS)) {
+            return "(-" + parseUnary() + ")";
+        }
+
+        return parsePrimary();
+    }
+
+    std::vector<std::string> parseArguments() {
+        std::vector<std::string> args;
+
+        expect(TokenType::LPAREN, "Expected '('");
+
+        if (!check(TokenType::RPAREN)) {
+            do {
+                args.push_back(parseExpression());
+            } while (match(TokenType::COMMA));
+        }
+
+        expect(TokenType::RPAREN, "Expected ')' after arguments");
+        return args;
+    }
+
     std::string parsePrimary() {
-        if (current().type == TokenType::NUMBER) {
-            std::string v = current().value;
-            pos++;
-            return v;
+        if (match(TokenType::NUMBER)) {
+            return previous().value;
         }
 
-        if (current().type == TokenType::STRING_LITERAL) {
-            std::string v = "\"" + current().value + "\"";
-            pos++;
-            return v;
+        if (match(TokenType::STRING_LITERAL)) {
+            return "\"" + previous().value + "\"";
         }
 
-        if (current().type == TokenType::IDENT) {
-            std::string v = current().value;
-            pos++;
-            return v;
+        if (match(TokenType::KW_TRUE)) {
+            return "true";
+        }
+
+        if (match(TokenType::KW_FALSE)) {
+            return "false";
+        }
+
+        if (match(TokenType::IDENT)) {
+            std::string name = previous().value;
+
+            if (check(TokenType::LPAREN)) {
+                auto args = parseArguments();
+                std::ostringstream call;
+                call << name << "(";
+                for (size_t i = 0; i < args.size(); ++i) {
+                    if (i > 0) call << ", ";
+                    call << args[i];
+                }
+                call << ")";
+                return call.str();
+            }
+
+            return name;
         }
 
         if (match(TokenType::LPAREN)) {
@@ -224,43 +433,29 @@ private:
         throw std::runtime_error("Invalid expression.");
     }
 
+    // Statements
     void parseDeclaration() {
-        if (match(TokenType::KW_INT)) {
-            expect(TokenType::IDENT, "Expected identifier after 'int'");
-            std::string name = tokens[pos - 1].value;
+        std::string cppType = parseType();
 
-            expect(TokenType::ASSIGN, "Expected '='");
-            std::string expr = parseExpression();
-            expect(TokenType::SEMICOLON, "Expected ';'");
+        expect(TokenType::IDENT, "Expected identifier after type");
+        std::string name = previous().value;
 
-            out << "    int " << name << " = " << expr << ";\n";
-            return;
-        }
+        expect(TokenType::ASSIGN, "Expected '=' in declaration");
+        std::string expr = parseExpression();
+        expect(TokenType::SEMICOLON, "Expected ';'");
 
-        if (match(TokenType::KW_STRING)) {
-            expect(TokenType::IDENT, "Expected identifier after 'string'");
-            std::string name = tokens[pos - 1].value;
-
-            expect(TokenType::ASSIGN, "Expected '='");
-            std::string expr = parseExpression();
-            expect(TokenType::SEMICOLON, "Expected ';'");
-
-            out << "    std::string " << name << " = " << expr << ";\n";
-            return;
-        }
-
-        throw std::runtime_error("Invalid declaration.");
+        *out << indent() << cppType << " " << name << " = " << expr << ";\n";
     }
 
     void parseAssignment() {
         expect(TokenType::IDENT, "Expected identifier");
-        std::string name = tokens[pos - 1].value;
+        std::string name = previous().value;
 
         expect(TokenType::ASSIGN, "Expected '='");
         std::string expr = parseExpression();
         expect(TokenType::SEMICOLON, "Expected ';'");
 
-        out << "    " << name << " = " << expr << ";\n";
+        *out << indent() << name << " = " << expr << ";\n";
     }
 
     void parsePrint() {
@@ -270,39 +465,139 @@ private:
         expect(TokenType::RPAREN, "Expected ')'");
         expect(TokenType::SEMICOLON, "Expected ';'");
 
-        out << "    std::cout << " << expr << " << std::endl;\n";
+        *out << indent() << "std::cout << " << expr << " << std::endl;\n";
     }
 
-    void parseBlock() {
-        expect(TokenType::LBRACE, "Expected '{'");
-        out << "    {\n";
+    void parseReturn() {
+        expect(TokenType::KW_RETURN, "Expected 'return'");
+        std::string expr = parseExpression();
+        expect(TokenType::SEMICOLON, "Expected ';' after return");
+        *out << indent() << "return " << expr << ";\n";
+    }
 
-        while (current().type != TokenType::RBRACE && current().type != TokenType::END) {
+    void parseBlockBody() {
+        expect(TokenType::LBRACE, "Expected '{'");
+
+        while (!check(TokenType::RBRACE) && !check(TokenType::END)) {
             parseStatement();
         }
 
         expect(TokenType::RBRACE, "Expected '}'");
-        out << "    }\n";
+    }
+
+    void parseIf() {
+        expect(TokenType::KW_IF, "Expected 'if'");
+        expect(TokenType::LPAREN, "Expected '(' after if");
+        std::string condition = parseExpression();
+        expect(TokenType::RPAREN, "Expected ')' after if condition");
+
+        *out << indent() << "if (" << condition << ") {\n";
+        parseBlockBody();
+        *out << indent() << "}\n";
+
+        if (match(TokenType::KW_ELSE)) {
+            *out << indent() << "else {\n";
+            parseBlockBody();
+            *out << indent() << "}\n";
+        }
+    }
+
+    void parseWhile() {
+        expect(TokenType::KW_WHILE, "Expected 'while'");
+        expect(TokenType::LPAREN, "Expected '(' after while");
+        std::string condition = parseExpression();
+        expect(TokenType::RPAREN, "Expected ')' after while condition");
+
+        *out << indent() << "while (" << condition << ") {\n";
+        parseBlockBody();
+        *out << indent() << "}\n";
+    }
+
+    void parseExpressionStatement() {
+        std::string expr = parseExpression();
+        expect(TokenType::SEMICOLON, "Expected ';'");
+        *out << indent() << expr << ";\n";
+    }
+
+    void parseFunction() {
+        expect(TokenType::KW_FN, "Expected 'fn'");
+
+        std::string returnType = parseType();
+
+        expect(TokenType::IDENT, "Expected function name");
+        std::string funcName = previous().value;
+
+        expect(TokenType::LPAREN, "Expected '(' after function name");
+
+        std::vector<std::pair<std::string, std::string>> params;
+        if (!check(TokenType::RPAREN)) {
+            do {
+                std::string paramType = parseType();
+                expect(TokenType::IDENT, "Expected parameter name");
+                std::string paramName = previous().value;
+                params.push_back({paramType, paramName});
+            } while (match(TokenType::COMMA));
+        }
+
+        expect(TokenType::RPAREN, "Expected ')' after parameters");
+
+        std::ostringstream localFn;
+        localFn << returnType << " " << funcName << "(";
+        for (size_t i = 0; i < params.size(); ++i) {
+            if (i > 0) localFn << ", ";
+            localFn << params[i].first << " " << params[i].second;
+        }
+        localFn << ") {\n";
+
+        std::ostringstream* previousOut = out;
+        out = &localFn;
+
+        parseBlockBody();
+
+        out = previousOut;
+        localFn << "}\n\n";
+
+        functionOut << localFn.str();
     }
 
     void parseStatement() {
-        if (current().type == TokenType::KW_INT || current().type == TokenType::KW_STRING) {
+        if (check(TokenType::KW_FN)) {
+            parseFunction();
+            return;
+        }
+
+        if (isTypeToken(current().type)) {
             parseDeclaration();
             return;
         }
 
-        if (current().type == TokenType::KW_PRINT) {
+        if (check(TokenType::KW_PRINT)) {
             parsePrint();
             return;
         }
 
-        if (current().type == TokenType::LBRACE) {
-            parseBlock();
+        if (check(TokenType::KW_IF)) {
+            parseIf();
             return;
         }
 
-        if (current().type == TokenType::IDENT) {
+        if (check(TokenType::KW_WHILE)) {
+            parseWhile();
+            return;
+        }
+
+        if (check(TokenType::KW_RETURN)) {
+            parseReturn();
+            return;
+        }
+
+        if (check(TokenType::IDENT) && checkNext(TokenType::ASSIGN)) {
             parseAssignment();
+            return;
+        }
+
+        if (check(TokenType::IDENT) && checkNext(TokenType::LPAREN)) {
+            parseExpressionStatement();
             return;
         }
 
@@ -313,24 +608,42 @@ public:
     explicit Parser(const std::vector<Token>& toks) : tokens(toks) {}
 
     std::string transpile() {
-        out << "#include <iostream>\n";
-        out << "#include <string>\n\n";
-        out << "int main() {\n";
+        std::ostringstream finalOut;
+
+        finalOut << "#include <iostream>\n";
+        finalOut << "#include <string>\n\n";
+
+        finalOut << "int beetle_pow(int base, int exp) {\n";
+        finalOut << "    if (exp < 0) return 0;\n";
+        finalOut << "    int result = 1;\n";
+        finalOut << "    while (exp > 0) {\n";
+        finalOut << "        result *= base;\n";
+        finalOut << "        exp--;\n";
+        finalOut << "    }\n";
+        finalOut << "    return result;\n";
+        finalOut << "}\n\n";
 
         while (current().type != TokenType::END) {
-            parseStatement();
+            if (check(TokenType::KW_FN)) {
+                parseFunction();
+            } else {
+                parseStatement();
+            }
         }
 
-        out << "    return 0;\n";
-        out << "}\n";
+        finalOut << functionOut.str();
+        finalOut << "int main() {\n";
+        finalOut << mainOut.str();
+        finalOut << "    return 0;\n";
+        finalOut << "}\n";
 
-        return out.str();
+        return finalOut.str();
     }
 };
 
 std::string readFile(const std::string& filename) {
     std::ifstream in(filename);
-    if (!in) throw std::runtime_error("The file could not be opened.: " + filename);
+    if (!in) throw std::runtime_error("The file could not be opened: " + filename);
 
     std::stringstream buffer;
     buffer << in.rdbuf();
@@ -339,7 +652,7 @@ std::string readFile(const std::string& filename) {
 
 void writeFile(const std::string& filename, const std::string& content) {
     std::ofstream out(filename);
-    if (!out) throw std::runtime_error("It was not possible to write to the file.: " + filename);
+    if (!out) throw std::runtime_error("It was not possible to write to the file: " + filename);
     out << content;
 }
 
@@ -351,12 +664,13 @@ std::string outputCppName(const std::string& input) {
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Use: beetle <file.bt>\n";
+        std::cerr << "Usage: beetle <file.bt>\n";
         return 1;
     }
 
     try {
         std::string source = readFile(argv[1]);
+
         Lexer lexer(source);
         auto tokens = lexer.tokenize();
 
