@@ -40,15 +40,88 @@
 <li><p>int</p></li>
 <li><p>float</p></li>
 <li><p>string</p></li>
-<li><p>bool</p></li>
+<li><p>bool: true, false</p></li>
+</ul>
+</section>
+<section id="what-v0-2-adds-over-v0-1">
+<h2>What v0.2 adds over v0.1<a class="headerlink" href="#what-v0-2-adds-over-v0-1" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>if</p></li>
+<li><p>function</p></li>
+<li><p>comments</p></li>
+<li><p>basic math operations</p></li>
+</ul>
+</section>
+<section id="what-v0-3-adds-over-v0-2">
+<h2>What v0.3 adds over v0.2<a class="headerlink" href="#what-v0-3-adds-over-v0-2" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>for (…) { … }</p></li>
+<li><p>break</p></li>
+<li><p>continue</p></li>
+<li><p>input()</p></li>
+<li><p>safer loop validation for break and continue</p></li>
+<li><p>better structure for future semantic checks</p></li>
 </ul>
 </section>
 <section id="exemple">
 <h2>Exemple<a class="headerlink" href="#exemple" title="Link to this heading">¶</a></h2>
-<div class="highlight-beetle notranslate"><div class="highlight"><pre><span></span>let a = 10
-let b = 3.14
-let c = &quot;text&quot;
-let d = true
+<div class="highlight-beetle notranslate"><div class="highlight"><pre><span></span>// Beetle v0.2 example
+
+fn int power2(int x) {
+   return x ^ 2;
+}
+
+fn int add(int a, int b) {
+   return a + b;
+}
+
+fn int sub(int a, int b) {
+   return a - b;
+}
+
+fn int mul(int a, int b) {
+   return a * b;
+}
+
+fn int division(int a, int b) {
+   return a / b;
+}
+
+// Operations
+int a = 5;
+int b = 3;
+int x = 81;
+int y = 3;
+int c = add(a, b);
+int d = sub(a, b);
+int e = mul(a, b);
+int f = division(x, y);
+
+// Addition
+print(c);
+
+if (c &gt; 5 &amp;&amp; c &lt; 20) {
+   print(&quot;value is in range&quot;);
+} else {
+   print(&quot;value is out of range&quot;);
+}
+
+int i = 0;
+while (i &lt; 4) {
+   print(i);
+   i = i + 1;
+}
+
+print(power2(6));
+
+// Subtraction
+print(d);
+
+// Multiplication
+print(e);
+
+// Division
+print(f);
 </pre></div>
 </div>
 </section>
@@ -77,6 +150,8 @@ let d = true
 <li class="toctree-l1"><a class="reference internal" href="syntax.html">Basic syntax</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Types</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#primitive-types">Primitive types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-v0-2-adds-over-v0-1">What v0.2 adds over v0.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-v0-3-adds-over-v0-2">What v0.3 adds over v0.2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#exemple">Exemple</a></li>
 </ul>
 </li>

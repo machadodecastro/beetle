@@ -7,14 +7,86 @@ Primitive types
 - int
 - float
 - string
-- bool
+- bool: true, false
 
-Exemple
--------
+
+What v0.2 adds over v0.1
+------------------------
+- if
+- function
+- comments
+- basic math operations
+
+
+What v0.3 adds over v0.2
+------------------------
+- for (...) { ... }
+- break
+- continue
+- input()
+- safer loop validation for break and continue
+- better structure for future semantic checks
+
+
+Exemple v0.2
+------------
 
 .. code-block:: beetle
 
-   let a = 10
-   let b = 3.14
-   let c = "text"
-   let d = true
+   // Beetle v0.2 example
+
+   fn int power2(int x) {
+      return x ^ 2;
+   }
+
+   fn int add(int a, int b) {
+      return a + b;
+   }
+
+   fn int sub(int a, int b) {
+      return a - b;
+   }
+
+   fn int mul(int a, int b) {
+      return a * b;
+   }
+
+   fn int division(int a, int b) {
+      return a / b;
+   }
+
+   // Operations
+   int a = 5;
+   int b = 3;
+   int x = 81;
+   int y = 3;
+   int c = add(a, b);
+   int d = sub(a, b);
+   int e = mul(a, b);
+   int f = division(x, y);
+
+   // Addition
+   print(c);
+
+   if (c > 5 && c < 20) {
+      print("value is in range");
+   } else {
+      print("value is out of range");
+   }
+
+   int i = 0;
+   while (i < 4) {
+      print(i);
+      i = i + 1;
+   }
+
+   print(power2(6));
+
+   // Subtraction
+   print(d);
+
+   // Multiplication
+   print(e);
+
+   // Division
+   print(f);

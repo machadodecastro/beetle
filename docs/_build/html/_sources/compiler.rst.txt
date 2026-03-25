@@ -9,7 +9,7 @@ Pipeline
 1. Lexer
 2. Parser
 3. AST
-4. C code generation
+4. C++ code generation
 5. Compilation with GCC
 
 Exemple

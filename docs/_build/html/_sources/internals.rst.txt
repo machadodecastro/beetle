@@ -19,4 +19,4 @@ Intermediate representation of the code.
 Codegen
 -------
 
-Generates optimized C code.
+Generates optimized C++ code.
