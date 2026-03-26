@@ -4,4 +4,7 @@
 
 Beetle is a compiled, high-level language with a simple and productive syntax, implemented by a small and fast compiler focused on embedded systems.
 
+Read the docs:
+https://beetle.readthedocs.io/en/latest/
+
 
