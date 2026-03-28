@@ -15,5 +15,5 @@ Use
 
 .. code-block:: beetle
 
-   let result = sum(2, 3)
+   int result = sum(2, 3)
    print(result)

@@ -6,8 +6,8 @@ Variables
 
 .. code-block:: beetle
 
-   let x = 10
-   let name = "Beetle"
+   int x = 10
+   string name = "Beetle"
 
 Conditionals
 ------------
