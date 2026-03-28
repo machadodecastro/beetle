@@ -28,8 +28,8 @@ What v0.3 adds over v0.2
 - better structure for future semantic checks
 
 
-Exemple
--------
+Exemple v0.2
+------------
 
 .. code-block:: beetle
 

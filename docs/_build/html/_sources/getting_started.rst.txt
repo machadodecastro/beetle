@@ -24,7 +24,7 @@ Running
 
    ./beetle program.bt
 
-Hello World
+Hello Beetle
 -----------
 
 .. code-block:: beetle
